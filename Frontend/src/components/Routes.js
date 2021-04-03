@@ -6,7 +6,8 @@ import Home from './Home';
 import Details from './Details';
 import AdminControl from './AdminControl';
 import PrivateRoute from './PrivateRoute';
-
+import Reset from './Reset';
+import  SetPassword from './SetPassword'
 const Routes = () => {
     return (
         <>
@@ -18,6 +19,8 @@ const Routes = () => {
                 <PrivateRoute exact path="/detail" component={Details}/>
                 {/* <Route exact path="/admin"><Admin /></Route> */}
                 <PrivateRoute exact path='/all-details' component={AdminControl}/>
+                <Route exact path="/reset" component={Reset}/>
+                <Route exact path="/set-password/:token" component={SetPassword}/>
             </Switch>
         </>
     )

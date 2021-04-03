@@ -3,6 +3,29 @@ const Category = require('../models/category');
 const jwt = require('jsonwebtoken')
 const validator = require('validator')
 const bcrypt = require('bcrypt');
+const sgMail = require('@sendgrid/mail')
+const nodemailer=require('nodemailer');
+// const sendgridTransport=require('nodemailer-sendgrid-transport');
+const crypto=require('crypto')
+
+
+var transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: "priyeshpandeyy@gmail.com",
+        pass: "Priyesh@2000"
+    }
+});
+let mailOptions = {
+    from: 'priyeshpandeyy@gmail.com',
+    to: 'priyeshpandeyy@gmail.com',
+    subject: 'hello world!',
+    text: 'hello world!'
+};
+
+
 
 const handleErrors = (err) => {
     let errors = { email: '', password: '' }
@@ -145,12 +168,15 @@ module.exports.reset_Password = async (req, res) => {
 
 module.exports.login_post = async (req, res) => {
     const { email, password, role, active } = req.body;
+    
     try {
         const user = await User.login(email, password, role, active);
+        console.log(process.env.SEND_GRID)
 
         const tokenvalue = createToken(user._id);
         const token = jwt.sign(tokenvalue, 'Hello world');
         // console.log('Token value',token)
+        // sgMail.setApiKey(process.env.SEND_GRID)
         res.header('auth-token', token)
         res.status(200).json({ role: user.role, user: user._id, active: user.active })
     } catch (err) {
@@ -240,10 +266,89 @@ module.exports.deactive = async (req, res) => {
     }
 
 }
+
+
+
+
+
+module.exports.forgot_password = async (req, res) => {
+    // const user=new User
+    // res.send("Done")
+    console.log("Email id", req.body.email)
+    console.log(process.env.EMAIL)
+    // res.json(res.body)
+    crypto.randomBytes(32,(err,buffer )=>{
+        if(err){
+            console.log(err)
+        }
+        const token=buffer.toString("hex")
+        User.findOne({email:req.body.email})
+        .then(user=>{
+            
+            if(!user)
+            {
+                return res.status(422).json({error:"User dont exist with that email"})
+            }
+            user.resetToken=token
+            user.expireToken= Date.now() + 3600000
+            user.save()
+            .then((result)=>{
+                // transporter.sendMail(mailOptions, function (err, dta) {
+                //     if (err) {
+                //         console.log("Erro occurs", err)
+                //     } else {
+                //         console.log("Email sent!!")
+                //     }
+                // })
+                transporter.sendMail({
+                    to:"priyeshpandeyy@gmail.com",
+                    from:"priyeshpandeyy@gmail.com",
+                    subject:"Hello World",
+                    html: `<p>Hello</p>
+                    <a href="http://localhost:3000/set-password/${token}">Click<a/>`
+                })
+                res.json({message:"Check your email"})
+            }).catch(err=>res.json({err}))
+        })
+    })
+
+
+}
+module.exports.update_Password =async (req,res)=>{
+    console.log("Request body",req.body)
+    const newPassword = req.body.value.newpassword;
+    const confirmPassword = req.body.value.confirmpassword;
+    const sentToken=req.body.token;
+    console.log("present",sentToken)
+    const salt = await bcrypt.genSalt();
+    User.findOne({ resetToken: sentToken, expireToken: { $gt: Date.now() } })
+        .then(user => {
+            console.log("Forgot Password",user)
+            if (!user) {
+                return res.status(422).json({ error: "Try again session expired" })
+            }
+            bcrypt.hash(newPassword,salt).then(hashedpassword => {
+                console.log("updatedhashed",hashedpassword)
+                
+                User.updateOne({ _id: user._id }, { $set: { password: hashedpassword, resetToken: undefined, expireToken: undefined } })
+                .then(result=>res.status(200))
+                // user.findByIdAndUpdate({_id:user._id},{password:hashedpassword,resetToken:undefined,expireToken:undefined})
+            }).then(result=>res.status(200))
+        }).catch(err => {
+            console.log(err)
+        })
+    
+}
+
 module.exports.logout_get = (req, res) => {
     res.cookie('jwt', '', { maxAge: 1 });
     res.redirect('/');
 }
+
+
+
+
+
 function escapeRegex(text) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 };
@@ -274,3 +379,4 @@ module.exports.search_Result=async (req,res)=>{
         console.log("other way around")
     }
 }
+

@@ -33,7 +33,9 @@ const userShema = new mongoose.Schema({
     active:{
         type:Boolean,
         default:true
-    }
+    },
+    resetToken:String,
+    expireToken:Date,
 }, { timestamps: true })
 
 
@@ -44,12 +46,6 @@ userShema.pre('save', async function (next) {
     next();
 })
 
-userShema.statics.comparePassword = function (candidatePassword, cb) {
-    bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
-        if (err) return cb(err);
-        cb(null, isMatch);
-    });
-};
 
 
 userShema.statics.login = async function (email, password,role,active) {
@@ -60,6 +56,7 @@ userShema.statics.login = async function (email, password,role,active) {
     const user = await this.findOne({ email });
     if (user) {
         const auth = await bcrypt.compare(password, user.password);
+        console.log("The value of auth",auth,password)
         if (auth) {
             return user;
         }

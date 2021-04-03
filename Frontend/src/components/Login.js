@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import axios from 'axios';
-import { useHistory } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import Navbar from './Nabar';
 import { ApiContext } from './ApiContext';
 const Login = () => {
@@ -101,6 +101,7 @@ const Login = () => {
                 <div class="text-danger">{passwordError}</div>
                 <center><button className="btn btn-primary mt-2 ">Login in </button></center>
             </form>
+            <Link to="/reset">Forgot Password?</Link>
         </div>
     )
 }

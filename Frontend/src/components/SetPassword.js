@@ -18,7 +18,7 @@ const SetPassword = () => {
             alert('Passwor updated Successfully')
         }).catch(err=>{
             console.log({err})
-            setWarning(err.response.data.error)
+            setWarning(err.response.data)
         })
     }
     return (

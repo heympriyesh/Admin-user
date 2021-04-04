@@ -326,21 +326,41 @@ module.exports.update_Password =async (req,res)=>{
     const sentToken=req.body.token;
     console.log("present",sentToken)
     const salt = await bcrypt.genSalt();
+    if(!newPassword || !confirmPassword)
+    {
+        return res.status(400).send("Password filed cannot be empty")
+    }
+    if(newPassword!==confirmPassword)
+    {
+        res.status(400).send("Password dosen't match")
+    }
     User.findOne({ resetToken: sentToken, expireToken: { $gt: Date.now() } })
         .then(user => {
             console.log("Forgot Password",user)
             if (!user) {
-                return res.status(422).json({ error: "Try again session expired" })
+                return res.status(422).send("Try again session expired" )
             }
-            bcrypt.hash(newPassword,salt).then(hashedpassword => {
+            if(newPassword===confirmPassword && newPassword.length>0)
+           { 
+               if(newPassword.length>6)
+
+           { bcrypt.hash(newPassword,salt)
+            .then(hashedpassword => {
                 console.log("updatedhashed",hashedpassword)
-                
                 User.updateOne({ _id: user._id }, { $set: { password: hashedpassword, resetToken: undefined, expireToken: undefined } })
-                .then(result=>res.status(200))
+                .then(result=>res.status(200).send("Password Updated Successfully.."))
+                .catch(err=>{
+                        console.log(error)
+                    res.status(400).send("Try again..!!")})
                 // user.findByIdAndUpdate({_id:user._id},{password:hashedpassword,resetToken:undefined,expireToken:undefined})
-            }).then(result=>res.status(200))
+            }).catch(err=>res.status(400).send("Please check the password field.."))}
+            else{
+                res.status(400).send("Password length must be at least 6 character..")
+            }
+        }
         }).catch(err => {
             console.log(err)
+            res.status(400).json({err})
         })
     
 }

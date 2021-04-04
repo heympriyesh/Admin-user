@@ -146,6 +146,10 @@ module.exports.reset_Password = async (req, res) => {
     const { confirmPassword,currentPassword,newPassword }=req.body;
     console.log(confirmPassword,currentPassword,newPassword,req.params.id)
     // res.send("Hello there")
+    if(!confirmPassword || !currentPassword || !newPassword)
+    {
+        return res.status(400).send("Please field cannot be empty")
+    }
     const salt =await bcrypt.genSalt();
     const updatedPassword=await bcrypt.hash(newPassword,salt)
     // console.log(!(confirmPassword === newPassword));
@@ -158,9 +162,16 @@ module.exports.reset_Password = async (req, res) => {
         console.log("The value of aut",auth)
         if(auth)
         {
-            const user = await User.updateOne({ _id: req.params.id }, { $set: { password:updatedPassword} })
-            console.log("haan bhai hogaya update",user)
-            res.status(200).send("Password Updated")
+            try{
+
+                const user = await User.updateOne({ _id: req.params.id }, { $set: { password:updatedPassword} })
+                res.status(200).send("Password Updated")
+            }
+            catch(err)
+            {
+                res.status(400).send({err})
+            }
+            // console.log("haan bhai hogaya update",user)
         }else{
             res.status(400).send("Password dosen't match")
         }

@@ -2,7 +2,6 @@ import React,{useState,useContext} from 'react'
 import { useLocation} from 'react-router-dom';
 import axios from 'axios';
 import Navbar from './Nabar';
-import {ApiContext} from './ApiContext'
 const Details = () => {
     let location=useLocation();
     const [check,setCheck]=useState(true);
@@ -14,11 +13,14 @@ const Details = () => {
     const [category,setCategory]=useState(location.state.datacheck.category.category)
     const [value, setValue] = useState({})
     const [_id,setId]=useState(location.state.datacheck._id)
+    const [resetHide,setResetHide]=useState(true);
+    const [warning,setWarning]=useState("");
     const handleChange = (key, value) => {
         setValue((prev) => ({ ...prev, [key]: value }))
     }
     const handleSubmit=(e)=>{
         e.preventDefault()
+        setWarning("")
         const token = sessionStorage.getItem('auth-token');
         console.log("Submit",value)
 
@@ -32,7 +34,9 @@ const Details = () => {
                 console.log("Result after submit", result)
                 // setValue(result.data)
             })
-            .catch(err=>console.log({err}))
+            .catch(err=>{console.log({err})
+            setWarning(err.response.data)
+            })
     }
     const Edit=()=>{
         console.log(check)
@@ -59,6 +63,10 @@ const Details = () => {
         }catch(err){
             console.log(err);
         } 
+    }
+    const hideFunction=()=>{
+        console.log("From hide function",resetHide)
+        setResetHide(!resetHide);
     }
     return (
         <div>
@@ -92,8 +100,12 @@ const Details = () => {
                   { check?<center><button onClick={()=>Edit()} className="btn btn-primary mt-2">Edit</button></center>:<center><button onClick={()=>upDate()} className="btn btn-primary mt-2">Update</button></center>}
 
                </div>
-               <center><button className="btn btn-danger mt-4">Reset Password</button></center>
-            <form className="form-group form-width" onSubmit={handleSubmit}>
+               <center>
+               <button className="btn btn-warning mt-4" onClick={hideFunction}>{resetHide?'Hide':'Reset Password'}</button>
+               </center>
+
+            {resetHide?<form className="form-group form-width" onSubmit={handleSubmit}>
+                    <h4 className="text-danger">{warning}</h4>
                 <label for="fullname">Enter Current Password</label>
                 <input type="text" name="currentPassword"
                     value={value.currentPassword}
@@ -110,10 +122,10 @@ const Details = () => {
                 <input type="text" name="confirmPassword"
                     value={value.confirmPassword}
                     onChange={(e) => handleChange("confirmPassword", e.target.value)}
-                    className="form-control"
+                    className="form-control mb-2"
                 />
-                <button type="submit">Reset</button>
-              </form>
+                <button type="submit" className="btn btn-danger  d-flex m-auto">Reset</button>
+              </form>:''}
             
         </div>
     )

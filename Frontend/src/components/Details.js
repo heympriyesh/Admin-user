@@ -7,6 +7,7 @@ const Details = () => {
     let location=useLocation();
     const [check,setCheck]=useState(true);
     const userData=location.state;
+    console.log("The data is from the showData",userData)
     const [email,setEmail]=useState(location.state.datacheck.email);
     const [passsword,setPassword]=useState(location.state.datacheck.password);
     const [fullname,setFullName]=useState(location.state.datacheck.fullname);

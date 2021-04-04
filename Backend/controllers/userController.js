@@ -7,15 +7,20 @@ const sgMail = require('@sendgrid/mail')
 const nodemailer=require('nodemailer');
 // const sendgridTransport=require('nodemailer-sendgrid-transport');
 const crypto=require('crypto')
+const dotenv=require('dotenv')
+dotenv.config();
 
+// const emailVar=;
+// const passVar=;
+// console.log("email",,"password",)
 
 var transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
     auth: {
-        user: "priyeshpandeyy@gmail.com",
-        pass: ""
+        user: process.env.EMAIL,
+        pass: process.env.PASS
     }
 });
 let mailOptions = {
@@ -275,7 +280,7 @@ module.exports.forgot_password = async (req, res) => {
     // const user=new User
     // res.send("Done")
     console.log("Email id", req.body.email)
-    console.log(process.env.EMAIL)
+    // console.log(process.env.EMAIL)
     // res.json(res.body)
     crypto.randomBytes(32,(err,buffer )=>{
         if(err){
@@ -284,7 +289,6 @@ module.exports.forgot_password = async (req, res) => {
         const token=buffer.toString("hex")
         User.findOne({email:req.body.email})
         .then(user=>{
-            
             if(!user)
             {
                 return res.status(422).json({error:"User dont exist with that email"})
@@ -301,14 +305,15 @@ module.exports.forgot_password = async (req, res) => {
                 //     }
                 // })
                 transporter.sendMail({
-                    to:"priyeshpandeyy@gmail.com",
+                    to:user.email,
                     from:"priyeshpandeyy@gmail.com",
-                    subject:"Hello World",
-                    html: `<p>Hello</p>
+                    subject:"Reset Password",
+                    html: `<p>Click the link below to Reset your password</p>
+                    <span>Link will expire in 1 hour</span>
                     <a href="http://localhost:3000/set-password/${token}">Click<a/>`
                 })
                 res.json({message:"Check your email"})
-            }).catch(err=>res.json({err}))
+            }).catch(err=>res.status(400).send('Error'))
         })
     })
 
@@ -360,6 +365,7 @@ module.exports.search_Result=async (req,res)=>{
         const regex = new RegExp(escapeRegex(req.params.search), 'gi');
     console.log("regular expression",regex)
         User.find({ fullname: regex })
+        .populate("category")
         .then(result=>{
             console.log(result)
             res.send(result)

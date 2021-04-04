@@ -4,8 +4,7 @@ import axios from 'axios';
 import Navbar from './Nabar';
 import Signup from './Signup';
 import AddDataComp from './AddDataComp';
-// import { search } from '../../../Backend/routes/userRoutes';
-// import Filter from './Filter';
+
 
 const AdminControl = () => {
     const [value, setValue] = useState([]);
@@ -25,10 +24,11 @@ const AdminControl = () => {
     const [editupdate, setEditUpdate] = useState(false);
     const [categoryid, setCategoryId] = useState("");
     const [emailError, setEmailError] = useState("")
-    // const [passwordError, setPasswordError] = useState("")
     const [fullnameError, setFullNameError] = useState("")
     const [categoryError, setCategoryError] = useState("")
     const [search,setSerach]=useState();
+    const location=useLocation();
+    console.log("This is the value from the admin Control page",location)
     useEffect(() => {
         const token = sessionStorage.getItem('auth-token');
         console.log("Value of filter", filter)

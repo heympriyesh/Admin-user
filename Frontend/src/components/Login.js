@@ -15,6 +15,7 @@ const Login = () => {
     var datacheck = '';
     var rolecheck = '';
     var activeDeactive = ''
+    var adminCheck='';
     let history = useHistory();
     const handleChange = (key, value) => {
         setValue((prev) => ({ ...prev, [key]: value }))
@@ -28,18 +29,23 @@ const Login = () => {
             const res = await axios.post('http://localhost:8000/login/', value)
                 .then(res => {
                     sessionStorage.setItem("auth-token", res.headers['auth-token'])
+                    datacheck=res.data
                     usercheck = res.data.user
                     rolecheck = res.data.role
                     activeDeactive = res.data.active
                     console.log("Login response", res.data)
                 })
             const data = await res;
-            console.log("Check", data)
+            console.log("Check", res)
             console.log("Active user", activeDeactive)
             if (rolecheck === 1) {
                 settruevalue(!truevalue);
                 setIsAuth(!isAuth)
-                return history.push('/all-details');
+               return history.push({
+                    pathname: '/showdata',
+                    state: {datacheck}
+                })
+                // return history.push('/all-details');
             }
             else {
                 if (usercheck && activeDeactive === true) {
@@ -58,9 +64,13 @@ const Login = () => {
                         setIsAuth(!isAuth)
 
                         history.push({
-                            pathname: '/detail',
+                            pathname: '/showdata',
                             state: {datacheck}
                         })
+                        // history.push({
+                        //     pathname: '/detail',
+                        //     state: {datacheck}
+                        // })
                     } catch (err) {
                         console.log({ err })
                         console.log({ err })
@@ -99,9 +109,12 @@ const Login = () => {
                     className="form-control"
                 />
                 <div class="text-danger">{passwordError}</div>
-                <center><button className="btn btn-primary mt-2 ">Login in </button></center>
+                <center><button className="btn btn-primary mt-2 ">Log in </button></center>
             </form>
-            <Link to="/reset">Forgot Password?</Link>
+            <center>
+
+            <Link to="/reset" className="text-danger mt-2">Forgot Password?</Link>
+            </center>
         </div>
     )
 }

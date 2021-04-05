@@ -42,7 +42,7 @@ const SetPassword = () => {
             </form> 
         <div className="text-danger">{warning}</div>
         </center>
-            
+            <Link to="/login" className="d-flex justify-content-center">Login Here</Link>
         </div>
     )
 }

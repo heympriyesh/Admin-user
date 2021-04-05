@@ -150,7 +150,7 @@ const AdminControl = () => {
             setFullNameError("");
             setCategoryError("")
             const data1 = await res;
-            console.log("The data value", data1)
+            console.log("Admin Control thing....!!", data1)
             setIdCheck('')
         } catch (err) {
             console.log("Duplicate update Error", { err });
@@ -216,10 +216,11 @@ const AdminControl = () => {
             <Navbar />
             <>
                 <center><h1>Admin Dashboard</h1></center>
-                <center><button onClick={newData} className="mt-2 p-2 btn btn-warning">{addData ? 'Hide' : 'Add New Data'}</button></center>
+                <center><button onClick={newData} className="m-2 p-2 btn btn-warning">{addData ? 'Hide' : 'Add New Data'}</button></center>
                    <center>
                     <form onSubmit={serachFun}>
                         <input type="text"
+                        placeholder="Enter name to Search.."
                             name="search"
                             value={search}
                             onChange={(e) => {

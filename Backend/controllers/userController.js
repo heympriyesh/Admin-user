@@ -239,18 +239,29 @@ module.exports.update_item = async (req, res) => {
     }
 }
 module.exports.userupdate_item = async (req, res) => {
-    if (validator.isEmail(req.body.email)) {
-        try {
-            const upateUser = await User.updateOne({ _id: req.params.id }, { $set: { email: req.body.email, fullname: req.body.fullname, category: req.body.category } })
+    console.log(req.body.email)
+    console.log(req.params.id)
+    console.log(req.body.category)
+    try{
+        const upateUser = await User.updateOne({ _id: req.params.id }, { $set: { email: req.body.email, fullname: req.body.fullname, category: req.body.category } })
+        .populate("category")
             console.log(upateUser)
-            res.status(200).send("Done")
-        } catch (err) {
-            // console.log("happening...")
-            res.status(400).json({ err })
-            // console.log(err)
-        }
+            const user=await User.findById({_id:req.params.id})
+            .populate("category")
+            res.status(200).json({user})
+    }catch(err){
+
+                // console.log("happening...")
+                // res.status(400).json({ err })
+                console.log(err)
+                res.status(400).send({err})
+                // console.log(err)
     }
-    res.status(400).send("Enter a valid Email")
+    // if (validator.isEmail(req.body.email)) {
+    //     try {
+    //     } catch (err) {
+    //     }
+    // }
 }
 module.exports.filter_data = async (req, res) => {
     // console.log(req.params.category)
@@ -308,16 +319,9 @@ module.exports.forgot_password = async (req, res) => {
             user.expireToken= Date.now() + 3600000
             user.save()
             .then((result)=>{
-                // transporter.sendMail(mailOptions, function (err, dta) {
-                //     if (err) {
-                //         console.log("Erro occurs", err)
-                //     } else {
-                //         console.log("Email sent!!")
-                //     }
-                // })
                 transporter.sendMail({
-                    to:user.email,
-                    from:"priyeshpandeyy@gmail.com",
+                    to:process.env.EMAIL,
+                    from:process.env.EMAIL,
                     subject:"Reset Password",
                     html: `<p>Click the link below to Reset your password</p>
                     <span>Link will expire in 1 hour</span>

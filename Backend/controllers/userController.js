@@ -4,10 +4,10 @@ const jwt = require('jsonwebtoken')
 const validator = require('validator')
 const bcrypt = require('bcrypt');
 const sgMail = require('@sendgrid/mail')
-const nodemailer=require('nodemailer');
+const nodemailer = require('nodemailer');
 // const sendgridTransport=require('nodemailer-sendgrid-transport');
-const crypto=require('crypto')
-const dotenv=require('dotenv')
+const crypto = require('crypto')
+const dotenv = require('dotenv')
 dotenv.config();
 
 // const emailVar=;
@@ -143,48 +143,43 @@ module.exports.delete_item = async (req, res) => {
 }
 
 module.exports.reset_Password = async (req, res) => {
-    const { confirmPassword,currentPassword,newPassword }=req.body;
-    console.log(confirmPassword,currentPassword,newPassword,req.params.id)
+    const { confirmPassword, currentPassword, newPassword } = req.body;
+    console.log(confirmPassword, currentPassword, newPassword, req.params.id)
     // res.send("Hello there")
-    if(!confirmPassword || !currentPassword || !newPassword)
-    {
+    if (!confirmPassword || !currentPassword || !newPassword) {
         return res.status(400).send("Please field cannot be empty")
     }
-    const salt =await bcrypt.genSalt();
-    const updatedPassword=await bcrypt.hash(newPassword,salt)
+    const salt = await bcrypt.genSalt();
+    const updatedPassword = await bcrypt.hash(newPassword, salt)
     // console.log(!(confirmPassword === newPassword));
-    if(!(confirmPassword=== newPassword)) return res.status(400).send("Please Enter same password")
+    if (!(confirmPassword === newPassword)) return res.status(400).send("Please Enter same password")
     console.log("Checking", confirmPassword == newPassword)
-    if(confirmPassword==newPassword)
-    {
-        const user = await User.findById({ _id: req.params.id  });
+    if (confirmPassword == newPassword) {
+        const user = await User.findById({ _id: req.params.id });
         const auth = await bcrypt.compare(currentPassword, user.password);
-        console.log("The value of aut",auth)
-        if(auth)
-        {
-            try{
+        console.log("The value of aut", auth)
+        if (auth) {
+            try {
 
-                const user = await User.updateOne({ _id: req.params.id }, { $set: { password:updatedPassword} })
+                const user = await User.updateOne({ _id: req.params.id }, { $set: { password: updatedPassword } })
                 res.status(200).send("Password Updated")
             }
-            catch(err)
-            {
-                res.status(400).send({err})
+            catch (err) {
+                res.status(400).send({ err })
             }
-            // console.log("haan bhai hogaya update",user)
-        }else{
+        } else {
             res.status(400).send("Password dosen't match")
         }
-    }  
-    else{
+    }
+    else {
         res.status(400).send("Something went wron")
-    } 
+    }
 }
 
 
 module.exports.login_post = async (req, res) => {
     const { email, password, role, active } = req.body;
-    
+
     try {
         const user = await User.login(email, password, role, active);
         console.log(process.env.SEND_GRID)
@@ -242,20 +237,20 @@ module.exports.userupdate_item = async (req, res) => {
     console.log(req.body.email)
     console.log(req.params.id)
     console.log(req.body.category)
-    try{
+    try {
         const upateUser = await User.updateOne({ _id: req.params.id }, { $set: { email: req.body.email, fullname: req.body.fullname, category: req.body.category } })
-        .populate("category")
-            console.log(upateUser)
-            const user=await User.findById({_id:req.params.id})
             .populate("category")
-            res.status(200).json({user})
-    }catch(err){
+        console.log(upateUser)
+        const user = await User.findById({ _id: req.params.id })
+            .populate("category")
+        res.status(200).json({ user })
+    } catch (err) {
 
-                // console.log("happening...")
-                // res.status(400).json({ err })
-                console.log(err)
-                res.status(400).send({err})
-                // console.log(err)
+        // console.log("happening...")
+        // res.status(400).json({ err })
+        console.log(err)
+        res.status(400).send({ err })
+        // console.log(err)
     }
     // if (validator.isEmail(req.body.email)) {
     //     try {
@@ -304,80 +299,76 @@ module.exports.forgot_password = async (req, res) => {
     console.log("Email id", req.body.email)
     // console.log(process.env.EMAIL)
     // res.json(res.body)
-    crypto.randomBytes(32,(err,buffer )=>{
-        if(err){
+    crypto.randomBytes(32, (err, buffer) => {
+        if (err) {
             console.log(err)
         }
-        const token=buffer.toString("hex")
-        User.findOne({email:req.body.email})
-        .then(user=>{
-            if(!user)
-            {
-                return res.status(422).json({error:"User dont exist with that email"})
-            }
-            user.resetToken=token
-            user.expireToken= Date.now() + 3600000
-            user.save()
-            .then((result)=>{
-                transporter.sendMail({
-                    to:process.env.EMAIL,
-                    from:process.env.EMAIL,
-                    subject:"Reset Password",
-                    html: `<p>Click the link below to Reset your password</p>
+        const token = buffer.toString("hex")
+        User.findOne({ email: req.body.email })
+            .then(user => {
+                if (!user) {
+                    return res.status(422).json({ error: "User dont exist with that email" })
+                }
+                user.resetToken = token
+                user.expireToken = Date.now() + 3600000
+                user.save()
+                    .then((result) => {
+                        transporter.sendMail({
+                            to: user.email,
+                            from: process.env.EMAIL,
+                            subject: "Reset Password",
+                            html: `<p>Click the link below to Reset your password</p>
                     <span>Link will expire in 1 hour</span>
                     <a href="http://localhost:3000/set-password/${token}">Click<a/>`
-                })
-                res.json({message:"Check your email"})
-            }).catch(err=>res.status(400).send('Error'))
-        })
+                        })
+                        res.json({ message: "Check your email" })
+                    }).catch(err => res.status(400).send('Error'))
+            })
     })
 
 
 }
-module.exports.update_Password =async (req,res)=>{
-    console.log("Request body",req.body)
+module.exports.update_Password = async (req, res) => {
+    console.log("Request body", req.body)
     const newPassword = req.body.value.newpassword;
     const confirmPassword = req.body.value.confirmpassword;
-    const sentToken=req.body.token;
-    console.log("present",sentToken)
+    const sentToken = req.body.token;
+    console.log("present", sentToken)
     const salt = await bcrypt.genSalt();
-    if(!newPassword || !confirmPassword)
-    {
+    if (!newPassword || !confirmPassword) {
         return res.status(400).send("Password filed cannot be empty")
     }
-    if(newPassword!==confirmPassword)
-    {
+    if (newPassword !== confirmPassword) {
         res.status(400).send("Password dosen't match")
     }
     User.findOne({ resetToken: sentToken, expireToken: { $gt: Date.now() } })
         .then(user => {
-            console.log("Forgot Password",user)
+            console.log("Forgot Password", user)
             if (!user) {
-                return res.status(422).send("Try again session expired" )
+                return res.status(422).send("Try again session expired")
             }
-            if(newPassword===confirmPassword && newPassword.length>0)
-           { 
-               if(newPassword.length>6)
-
-           { bcrypt.hash(newPassword,salt)
-            .then(hashedpassword => {
-                console.log("updatedhashed",hashedpassword)
-                User.updateOne({ _id: user._id }, { $set: { password: hashedpassword, resetToken: undefined, expireToken: undefined } })
-                .then(result=>res.status(200).send("Password Updated Successfully.."))
-                .catch(err=>{
-                        console.log(error)
-                    res.status(400).send("Try again..!!")})
-                // user.findByIdAndUpdate({_id:user._id},{password:hashedpassword,resetToken:undefined,expireToken:undefined})
-            }).catch(err=>res.status(400).send("Please check the password field.."))}
-            else{
-                res.status(400).send("Password length must be at least 6 character..")
+            if (newPassword === confirmPassword && newPassword.length > 0) {
+                if (newPassword.length > 6) {
+                    bcrypt.hash(newPassword, salt)
+                    .then(hashedpassword => {
+                        console.log("updatedhashed", hashedpassword)
+                        User.updateOne({ _id: user._id }, { $set: { password: hashedpassword, resetToken: undefined, expireToken: undefined } })
+                            .then(result => res.status(200).send("Password Updated Successfully.."))
+                            .catch(err => {
+                                console.log(error)
+                                res.status(400).send("Try again..!!")
+                            })
+                    }).catch(err => res.status(400).send("Please check the password field.."))
+                }
+                else {
+                    res.status(400).send("Password length must be at least 6 character..")
+                }
             }
-        }
         }).catch(err => {
             console.log(err)
-            res.status(400).json({err})
+            res.status(400).json({ err })
         })
-    
+
 }
 
 module.exports.logout_get = (req, res) => {
@@ -392,30 +383,21 @@ module.exports.logout_get = (req, res) => {
 function escapeRegex(text) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 };
-module.exports.search_Result=async (req,res)=>{
-    const pal=req.params.search;
-    console.log("pal",pal.length)
+module.exports.search_Result = async (req, res) => {
+    const pal = req.params.search;
+    console.log("pal", pal.length)
     console.log(req.params.search);
     if (req.params.search) {
         const regex = new RegExp(escapeRegex(req.params.search), 'gi');
-    console.log("regular expression",regex)
+        console.log("regular expression", regex)
         User.find({ fullname: regex })
-        .populate("category")
-        .then(result=>{
-            console.log(result)
-            res.send(result)
-        })
-            // if (err) {
-            //     console.log(err);
-            // } else {
-            //     if (allCampgrounds.length < 1) {
-            //         noMatch = "No campgrounds match that query, please try again.";
-            //     }
-            //     res.status(400).send("No match Found")
-            //     // res.render("campgrounds/index", { campgrounds: allCampgrounds, noMatch: noMatch });
-            // }
-    }else{
-       const user= User.find().populate("category")
+            .populate("category")
+            .then(result => {
+                console.log(result)
+                res.send(result)
+            })
+    } else {
+        const user = User.find().populate("category")
         res.status(200).json(user);
         console.log("other way around")
     }

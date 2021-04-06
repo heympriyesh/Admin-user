@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState ,useCallback} from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from './Nabar';
 import Signup from './Signup';
 import AddDataComp from './AddDataComp';
-
-
+import debounce from 'lodash.debounce'
 const AdminControl = () => {
     const [value, setValue] = useState([]);
     const [run, setRun] = useState(true);
@@ -26,9 +25,10 @@ const AdminControl = () => {
     const [emailError, setEmailError] = useState("")
     const [fullnameError, setFullNameError] = useState("")
     const [categoryError, setCategoryError] = useState("")
-    const [search,setSerach]=useState();
-    const location=useLocation();
-    console.log("This is the value from the admin Control page",location)
+    const [search, setSerach] = useState();
+    const [controlSerach,setControlSearch]=useState()
+    const location = useLocation();
+    console.log("This is the value from the admin Control page", location)
     useEffect(() => {
         const token = sessionStorage.getItem('auth-token');
         console.log("Value of filter", filter)
@@ -137,7 +137,7 @@ const AdminControl = () => {
             const res = await axios.patch(`${port}/${id}`, { "email": email, "fullname": fullname, "category": categoryid }, token && {
                 headers: {
                     "auth-token":
-                    token
+                        token
                 },
             });
             setEmail("")
@@ -146,7 +146,6 @@ const AdminControl = () => {
             setEdit((prev) => !prev)
             setEditUpdate(!editupdate)
             setEmailError("");
-            // setPasswordError("");
             setFullNameError("");
             setCategoryError("")
             const data1 = await res;
@@ -181,8 +180,10 @@ const AdminControl = () => {
     const newData = () => {
         setAddData(!addData)
     }
-    useEffect(()=>{
-        const token=sessionStorage.getItem("auth-token")
+
+
+    useEffect(() => {
+        const token = sessionStorage.getItem("auth-token")
         axios.post(`http://localhost:8000/${search}`, token && {
             headers: {
                 "auth-token":
@@ -192,7 +193,7 @@ const AdminControl = () => {
             setValue(() => setValue(result.data));
             console.log("Result", result)
         }).catch(err => {
-            console.log({err})
+            console.log({ err })
             axios.get('http://localhost:8000/', token && {
                 headers: {
                     "auth-token":
@@ -206,10 +207,17 @@ const AdminControl = () => {
                     console.log(err)
                 })
         })
-        console.log("search value in ",search)
-    },[search])
-    const serachFun=(e)=>{
+        console.log("search value in ", search)
+    }, [controlSerach])
+    const debounceSave = useCallback(debounce((nextValue) => setControlSearch(nextValue), 1000), [])
+    
+    const serachFun = (e) => {
         e.preventDefault();
+        
+    }
+    const handleSearch=(text)=>{
+        setSerach(text)
+        debounceSave(text)
     }
     return (
         <>
@@ -217,20 +225,18 @@ const AdminControl = () => {
             <>
                 <center><h1>Admin Dashboard</h1></center>
                 <center><button onClick={newData} className="m-2 p-2 btn btn-warning">{addData ? 'Hide' : 'Add New Data'}</button></center>
-                   <center>
+                <center>
                     <form onSubmit={serachFun}>
                         <input type="text"
-                        placeholder="Enter name to Search.."
+                            placeholder="Enter name to Search.."
                             name="search"
                             value={search}
                             onChange={(e) => {
-                                setSerach(e.target.value)
-                                console.log(search)
-                            }}
+                                handleSearch(e.target.value)}}
                         />
                         <input type="submit" />
                     </form>
-                   </center> 
+                </center>
                 {addData ? <AddDataComp heading="Add New Data" button="Add" /> : null}
                 <center> <button onClick={showAllData} className="btn btn-danger m-2 p-2">All Data</button></center>
                 <select
@@ -258,7 +264,7 @@ const AdminControl = () => {
                                         }}
                                             className="form-width form-control"
                                         />
-                                            <center><div class="text-danger">{emailError}</div></center>
+                                        <center><div class="text-danger">{emailError}</div></center>
 
                                         <center><label>Full Name:</label></center>
 
@@ -269,7 +275,7 @@ const AdminControl = () => {
                                             className="form-width form-control"
                                             required
                                         />
-                                            <center><div class="text-danger">{fullnameError}</div></center>
+                                        <center><div class="text-danger">{fullnameError}</div></center>
 
                                         <br />
                                         <select
@@ -280,7 +286,7 @@ const AdminControl = () => {
                                                     <option value={val._id} className="bg-white">{val.category}</option>)
                                             })}
                                         </select>
-                                            <center><div class="text-danger">{categoryError}</div></center>
+                                        <center><div class="text-danger">{categoryError}</div></center>
 
                                     </> : <>
 
@@ -289,8 +295,8 @@ const AdminControl = () => {
 
                                     </>}</>}
                                 <center>
-                                    {val.active ? <button onClick={() => deleteValue(val._id)} className="btn btn-primary mt-2 mr-2">Deactivate User</button> 
-                                    : <button onClick={() => activeValue(val._id)} className="btn btn-primary mt-2 mr-2">Activate User</button>}
+                                    {val.active ? <button onClick={() => deleteValue(val._id)} className="btn btn-primary mt-2 mr-2">Deactivate User</button>
+                                        : <button onClick={() => activeValue(val._id)} className="btn btn-primary mt-2 mr-2">Activate User</button>}
 
 
                                     {edit ? <button onClick={() => Edit(val._id, val.email)} className="btn btn-primary mt-2" disabled={val.active ?

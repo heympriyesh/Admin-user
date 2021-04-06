@@ -31,7 +31,6 @@ mongoose.connect(process.env.DB_CONNECTION, { useNewUrlParser: true, useUnifiedT
             if (err) {
                 console.log(err)
             } else {
-                console.log("Count is", count)
                 if (count === 0) {
                     await Category.create(createCategory)
                 }

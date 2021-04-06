@@ -306,6 +306,10 @@ module.exports.forgot_password = async (req, res) => {
         const token = buffer.toString("hex")
         User.findOne({ email: req.body.email })
             .then(user => {
+                if(user.active===false)
+                {
+                    return res.status(422).json({error:"User not exist with that email..."})
+                }
                 if (!user) {
                     return res.status(422).json({ error: "User dont exist with that email" })
                 }
